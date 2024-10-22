@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "functional": "c",
+        "array": "cpp",
+        "initializer_list": "cpp",
+        "limits": "cpp",
+        "type_traits": "cpp",
+        "cerrno": "c"
+    }
+}
