@@ -23,7 +23,7 @@
  */
 
 /* Details of the implementation, etc can be found here: https://en.wikipedia.org/wiki/SHA-2
-	 See sha256.h for short documentation on library usage */
+	 See sha256.h for short documentation on library usage*/
 
 #include <stdio.h>
 #include <stdlib.h>

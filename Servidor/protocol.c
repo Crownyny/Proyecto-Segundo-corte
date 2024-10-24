@@ -29,12 +29,32 @@ return_code local_copy(int socket, char * destination) {
 		
 		
 		// Recibe el contenido del archivo
+		ssize_t total_read = 0;
 		ssize_t nread = recv(socket, &buffer, to_read, 0);
-		if (nread != to_read)
+		total_read += nread;
+		while (total_read < to_read)
+		{
+			nread = recv(socket, buffer + total_read, to_read - total_read, 0);
+			
+			if (nread < 0)
+			{
+				fclose(fd);
+				printf("Error reading file\n");
+				return VERSION_ERROR;
+			}
+			
+			if (nread == 0) // Se alcanzó el final de la transmisión
+			{
+				break;
+			}
+
+			total_read += nread;
+		}
+
+		if (total_read != to_read)
 		{
 			fclose(fd);
-			printf("Error reading file\n");
-
+			printf("Incomplete file read\n");
 			return VERSION_ERROR;
 		}
 

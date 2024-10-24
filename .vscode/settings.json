@@ -5,6 +5,7 @@
         "initializer_list": "cpp",
         "limits": "cpp",
         "type_traits": "cpp",
-        "cerrno": "c"
+        "cerrno": "c",
+        "sha256.h": "c"
     }
 }
