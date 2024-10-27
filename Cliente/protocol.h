@@ -5,6 +5,8 @@
  * @author Andrea Carolina Realpe Munoz <andrearealpe@unicauca.edu.co>
  * @copyright MIT Liscense
  */
+#pragma once
+
 #include <sys/types.h>
 #include <linux/limits.h>
 #include <stdio.h>
@@ -52,9 +54,10 @@ typedef enum {
  * en caso de que ocurra un error, se envía el código de retorno VERSION_ERROR
  */
 typedef struct {
-	char filename[PATH_MAX]; /**< Nombre del archivo original. */
-	char hash[HASH_SIZE];           /**< Hash del contenido del archivo. */
-	char comment[COMMENT_SIZE];	   /**< Comentario del usuario. */
+	char username[50];         /**< Nombre del usuario */
+	char filename[PATH_MAX];   /**< Nombre del archivo original. */
+	char hash[HASH_SIZE];      /**< Hash del contenido del archivo. */
+	char comment[COMMENT_SIZE];/**< Comentario del usuario. */
 } sadd;
 
 /**
@@ -69,8 +72,9 @@ typedef struct {
  * en caso de que la versión no exista, se envía el código de retorno VERSION_NOT_FOUND
  */
 typedef struct {
+	char username[50];        /**< Nombre del usuario */
     char filename[HASH_SIZE]; /**< Nombre del archivo original. */
-    size_t version; /**< Version del archivo a obtener */
+    size_t version;           /**< Version del archivo a obtener */
 } sget;
 
 /**
@@ -87,7 +91,8 @@ typedef struct {
  * en caso de que no se encuentren versiones, solo se envía el código de retorno VERSION_NOT_FOUND
  */
 typedef struct {
-    char filename[HASH_SIZE];  /**< Nombre del archivo original. */
+    char username[50];       /**< Nombre del usuario */
+    char filename[HASH_SIZE];/**< Nombre del archivo original. */
 } slist;
 
 /**

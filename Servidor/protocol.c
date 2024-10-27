@@ -7,6 +7,7 @@
  */
 
 #include "protocol.h"
+#include "versions.h"
 
 return_code local_copy(int socket, char * destination) {
 	// Copia el contenido de source a destination (se debe usar open-read-write-close, o fopen-fread-fwrite-fclose)
@@ -136,4 +137,7 @@ void fake_local_copy(int socket) {
 	}
 
 	return ;
+}
+void get_user_db_path(const char *username, char *db_path, size_t size) {
+    snprintf(db_path, size, "%s/versions_%s.db", VERSIONS_DIR, username);
 }

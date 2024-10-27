@@ -5,6 +5,8 @@
  * @author Andrea Carolina Realpe Munoz <andrearealpe@unicauca.edu.co>
  * @copyright MIT Liscense
  */
+#pragma once
+
 #include <sys/types.h>
 #include <linux/limits.h>
 #include <stdio.h>
@@ -52,6 +54,7 @@ typedef enum {
  * en caso de que ocurra un error, se envía el código de retorno VERSION_ERROR
  */
 typedef struct {
+	char username[50];
 	char filename[PATH_MAX]; /**< Nombre del archivo original. */
 	char hash[HASH_SIZE];           /**< Hash del contenido del archivo. */
 	char comment[COMMENT_SIZE];	   /**< Comentario del usuario. */
@@ -69,6 +72,7 @@ typedef struct {
  * en caso de que la versión no exista, se envía el código de retorno VERSION_NOT_FOUND
  */
 typedef struct {
+	char username[50];
     char filename[HASH_SIZE]; /**< Nombre del archivo original. */
     size_t version; /**< Version del archivo a obtener */
 } sget;
@@ -87,6 +91,7 @@ typedef struct {
  * en caso de que no se encuentren versiones, se envía el código de retorno VERSION_NOT_FOUND
  */
 typedef struct {
+	char username[50];
     char filename[HASH_SIZE];  /**< Nombre del archivo original. */
 } slist;
 
@@ -119,3 +124,16 @@ return_code remote_copy(char * source, int socket);
  * @return Resultado de la operacion (VERSION_ERROR o VERSION_CREATED)
  */
 void fake_local_copy(int socket);
+
+/**
+ * @brief Genera la ruta de la base de datos de versiones para un usuario específico
+ *
+ * Esta función genera la ruta completa del archivo de versiones para un usuario,
+ * basándose en el nombre del usuario y en el directorio general de versiones.
+ * 
+ * @param username Nombre del usuario
+ * @param db_path Buffer para almacenar la ruta generada
+ * @param size Tamaño máximo del buffer db_path
+ */
+void get_user_db_path(const char *username, char *db_path, size_t size);
+

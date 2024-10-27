@@ -36,7 +36,7 @@ return_code get_result(int socket, return_code result, char * hash);
  *
  * @return 1 si la version existe, 0 en caso contrario.
  */
-int version_exists(char * filename, char * hash);
+int version_exists(const char *db_path, char * filename, char * hash);
 
 
 /**
@@ -59,7 +59,7 @@ return_code store_file(int socket, char * filename, char * hash);
  *
  * @return 1 en caso de exito, 0 en caso de error.
  */
-return_code add_new_version(sadd * req);
+return_code add_new_version(const char *db_path, sadd * req);
 
 
 /**
@@ -74,11 +74,14 @@ return_code retrieve_file(int socket, char * hash);
 
 
 return_code add(int socket, sadd * request) {
+	char db_path[PATH_MAX];
+    get_user_db_path(request->username, db_path, sizeof(db_path)); // Ruta específica del usuario
+
     // Verifica si ya existe una version con el mismo hash
 	// Retorna VERSION_ALREADY_EXISTS si ya existe
 	//version_exists(filename, v.hash)
 
-	if(version_exists(request->filename, request->hash)  == VERSION_ALREADY_EXISTS)
+	if(version_exists(db_path, request->filename, request->hash)  == VERSION_ALREADY_EXISTS)
 		return add_result(socket, VERSION_ALREADY_EXISTS);
 
 	// Almacena el archivo en el repositorio.
@@ -90,17 +93,18 @@ return_code add(int socket, sadd * request) {
 	// Agrega un nuevo registro al archivo versions.db
 	// Si no puede adicionar el registro, se debe borrar el archivo almacenado en el paso anterior
 	// Si la operacion falla, retorna VERSION_ERROR
-	if(add_new_version(request) == VERSION_ERROR) {
-		char file_path[PATH_MAX];
-		snprintf(file_path, PATH_MAX, "%s/%s", VERSIONS_DIR, request->hash);
-		if (remove(request->filename) != 0) {
-			perror("Remove failed");
-		}
-		else {
-			printf("File %s deleted successfully", request->filename);
-		}
+	if(add_new_version(db_path, request) == VERSION_ERROR) {
+		//char file_path[PATH_MAX];
+		//snprintf(file_path, PATH_MAX, "%s/%s", VERSIONS_DIR, request->hash);
+		//if (remove(request->filename) != 0) {
+		//	perror("Remove failed");
+		//}
+		//else {
+		//	printf("File %s deleted successfully", request->filename);
+		//}
 
-		remove(file_path);
+		//remove(file_path);
+		remove(db_path);
 		return add_result(socket, VERSION_ERROR);
 	}
     
@@ -108,9 +112,9 @@ return_code add(int socket, sadd * request) {
 	return add_result(socket, VERSION_ADDED);
 }
 
-return_code add_new_version(sadd * req) {
+return_code add_new_version(const char *db_path, sadd * req) {
 	FILE * fp = fopen(VERSIONS_DB_PATH, "ab");
-
+	
 	if(!fp) return VERSION_ERROR;
 	// Adiciona un nuevo registro (estructura) al archivo versions.db
 	fwrite(req, sizeof *req, 1, fp);	
@@ -120,55 +124,77 @@ return_code add_new_version(sadd * req) {
 
 
 void list(int socket, slist * request) {
+	char db_path[PATH_MAX];
+	get_user_db_path(request->username, db_path, sizeof(db_path)); // Ruta específica del usuario
 	FILE * fp; //Archivo de versiones
+
+	if (!fp) {
+        return_code result = VERSION_NOT_FOUND;
+        send(socket, &result, sizeof(result), 0);
+        return;
+    }
+
     sadd sadd_buffer; //Estructura de versiones
     char buffer[PATH_MAX]; //Buffer para enviar los datos al cliente
 	int version_count = 0; //Contador de versiones
-	ssize_t read_count; //Cantidad de bytes leidos
-	return_code result = VERSION_CREATED	; //Resultado de la operacion
+	//ssize_t read_count; //Cantidad de bytes leidos
+	//return_code result = VERSION_CREATED	; //Resultado de la operacion
 	int msg_size; //Tamaño del mensaje
+	
 	//Abre el la base de datos de versiones (versions.db)
-	if(!(fp = fopen(VERSIONS_DB_PATH, "r"))) return ;
+	//if(!(fp = fopen(VERSIONS_DB_PATH, "r"))) return ;
 
 	//Muestra los registros cuyo nombre coincide con filename.
 	//Si filename es NULL, muestra todos los registros.
-    while(read_count = fread(&sadd_buffer, sizeof(sadd), 1, fp), read_count > 0) {
-		if(request->filename[0] == '\0') //Si filename es NULL, muestra todos los registros
-        {
-			if(version_count == 0) send(socket, &result, sizeof(return_code), 0); //Envia VERSION_CREATED si se encuentra el archivo
+    // while(read_count = fread(&sadd_buffer, sizeof(sadd), 1, fp), read_count > 0) {
+	// 	if(request->filename[0] == '\0') //Si filename es NULL, muestra todos los registros
+    //     {
+	// 		if(version_count == 0) send(socket, &result, sizeof(return_code), 0); //Envia VERSION_CREATED si se encuentra el archivo
 
-            snprintf(buffer,sizeof(buffer),"%s %.3s...%.3s %s\n", sadd_buffer.filename, sadd_buffer.hash, 
-            (sadd_buffer.hash + strlen(sadd_buffer.hash) - 3), sadd_buffer.comment); //Guarda el registro en el buffer
-			msg_size = strlen(buffer);
-			send (socket, &msg_size, sizeof(int), 0); //Envia el tamaño del mensaje
-            send(socket, buffer, msg_size, 0); //Envia el buffer al cliente
-			version_count++;
-            continue;
+    //         snprintf(buffer,sizeof(buffer),"%s %.3s...%.3s %s\n", sadd_buffer.filename, sadd_buffer.hash, 
+    //         (sadd_buffer.hash + strlen(sadd_buffer.hash) - 3), sadd_buffer.comment); //Guarda el registro en el buffer
+	// 		msg_size = strlen(buffer);
+	// 		send (socket, &msg_size, sizeof(int), 0); //Envia el tamaño del mensaje
+    //         send(socket, buffer, msg_size, 0); //Envia el buffer al cliente
+	// 		version_count++;
+    //         continue;
+    //     }
+
+	// 	if(EQUALS(sadd_buffer.filename, request->filename)) //Si filename no es NULL, muestra los registros cuyo nombre coincide con filename
+	// 	{
+	// 		if(version_count == 0) send(socket, &result, sizeof(return_code), 0); //Envia VERSION_CREATED si se encuentra el archivo
+
+    //         snprintf(buffer,sizeof(buffer),"%s %.3s...%.3s %s (%d)\n", sadd_buffer.filename, sadd_buffer.hash,  
+    //         (sadd_buffer.hash + strlen(sadd_buffer.hash) - 3), sadd_buffer.comment, version_count++); //Guarda el registro en el buffer
+	// 		msg_size = strlen(buffer);
+	// 		send (socket, &msg_size, sizeof(int), 0); //Envia el tamaño del mensaje
+    //         send(socket, buffer, msg_size, 0); //Envia el buffer al cliente
+	// 	}
+	// }
+
+	while (fread(&sadd_buffer, sizeof(sadd), 1, fp) > 0) {
+        if (request->filename[0] == '\0' || EQUALS(sadd_buffer.filename, request->filename)) {
+            snprintf(buffer, sizeof(buffer), "%s %.3s...%.3s %s\n", 
+                     sadd_buffer.filename, sadd_buffer.hash, 
+                     (sadd_buffer.hash + strlen(sadd_buffer.hash) - 3), 
+                     sadd_buffer.comment);
+            msg_size = strlen(buffer);
+            send(socket, &msg_size, sizeof(int), 0);
+            send(socket, buffer, msg_size, 0);
+            version_count++;
         }
-
-		if(EQUALS(sadd_buffer.filename, request->filename)) //Si filename no es NULL, muestra los registros cuyo nombre coincide con filename
-		{
-			if(version_count == 0) send(socket, &result, sizeof(return_code), 0); //Envia VERSION_CREATED si se encuentra el archivo
-
-            snprintf(buffer,sizeof(buffer),"%s %.3s...%.3s %s (%d)\n", sadd_buffer.filename, sadd_buffer.hash,  
-            (sadd_buffer.hash + strlen(sadd_buffer.hash) - 3), sadd_buffer.comment, version_count++); //Guarda el registro en el buffer
-			msg_size = strlen(buffer);
-			send (socket, &msg_size, sizeof(int), 0); //Envia el tamaño del mensaje
-            send(socket, buffer, msg_size, 0); //Envia el buffer al cliente
-		}
-	}
-
+    }
 
 	if(version_count == 0) 
 	{
-		result = VERSION_NOT_FOUND;
-		send(socket, &result, sizeof(return_code), 0); //Si no se encuentra el archivo, envia VERSION_NOT_FOUND
+		return_code result = VERSION_NOT_FOUND;
+		send(socket, &result, sizeof(result), 0); //Si no se encuentra el archivo, envia VERSION_NOT_FOUND
 	}
 
 	fclose(fp);
 }
 
-int version_exists(char * filename, char * hash) {
+int version_exists(const char *db_path, char * filename, char * hash) {
 	FILE *fp;
 	ssize_t read_count;
 	sadd sadd_buffer;
@@ -187,15 +213,18 @@ int version_exists(char * filename, char * hash) {
 }
 
 return_code get(int socket, sget * request) {
+	char db_path[PATH_MAX];
+    get_user_db_path(request->username, db_path, sizeof(db_path)); // Ruta específica del usuario
 
 	sadd sadd_buffer; //Estructura de versiones que guardara temporalmente los registros leidos
 	int count =0; //Contador de versiones
-	ssize_t nread; //Cantidad de bytes leidos
+	//ssize_t nread; //Cantidad de bytes leidos
 
 	FILE * fp = fopen(VERSIONS_DB_PATH, "r"); //Abre el archivo de versiones
 	if(!fp) return get_result(socket, VERSION_NOT_FOUND, NULL); //Si no se puede abrir el archivo de versiones, retorna VERSION_NOT_FOUND
 
-	while (nread = fread(&sadd_buffer, sizeof sadd_buffer, 1, fp), nread > 0) //Lee el archivo de versiones
+	//while (nread = fread(&sadd_buffer, sizeof sadd_buffer, 1, fp), nread > 0) //Lee el archivo de versiones
+	while (fread(&sadd_buffer, sizeof(sadd), 1, fp) > 0)
 	{
 		printf("Filename: %s %s\n",request->filename, sadd_buffer.filename);
 		if(EQUALS(request->filename, sadd_buffer.filename) && count++ == request->version)
@@ -209,7 +238,7 @@ return_code get(int socket, sget * request) {
     return get_result(socket, VERSION_NOT_FOUND, NULL); //Si no se encuentra la version solicitada retorna VERSION_NOT_FOUND
 }
 
-return_code store_file(int socket, char * filename, char * hash) {
+return_code store_file(int socket, char * filename, char * hash){
 	char dst_filename[PATH_MAX];
 	snprintf(dst_filename, PATH_MAX, "%s/%s", VERSIONS_DIR, hash);
 	return local_copy(socket, dst_filename);

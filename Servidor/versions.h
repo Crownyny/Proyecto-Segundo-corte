@@ -6,6 +6,7 @@
  * @author Andrea Carolina Realpe Munoz <andrearealpe@unicauca.edu.co>
  * @copyright MIT License
 */
+#pragma once
 
 #ifndef VERSIONS_H
 #define VERSIONS_H

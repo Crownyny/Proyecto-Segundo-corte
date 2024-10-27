@@ -39,14 +39,15 @@ void sig_handler(int signo);
 /**
  * @brief Muestra el mensaje de uso del cliente
  */
-void usage();
+void usage(const char *server_ip, int port, const char *username);
+
 
 int client_socket; // Socket del cliente
 
 int main(int argc, char *argv[])
 {
-    if (argc < 3) { // Verificar que se hayan pasado los argumentos necesarios
-        fprintf(stderr,"Usage: %s <server id> <port>\n", argv[0]);
+    if (argc < 4) { // Verificar que se hayan pasado los argumentos necesarios
+        fprintf(stderr,"Usage: %s <server id> <port> <username>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -57,6 +58,13 @@ int main(int argc, char *argv[])
     // Obtenemos la id y el puerto del servidor
     char *server_ip = argv[1];
     int port = atoi(argv[2]);
+    char *username = argv[3];
+
+    // Validamos el nombre de ususario
+    if (strlen(username) == 0) {
+        fprintf(stderr, "Error: Username cannot be empty.\n");
+        exit(EXIT_FAILURE);
+    }
 
     // Creamos el socket
     if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -99,6 +107,7 @@ int main(int argc, char *argv[])
         {
             sadd sadd_request;
             memset(&sadd_request, 0, sizeof(sadd));
+            strcpy(sadd_request.username, username);//Incluye el username para que el servidor gestione
             if(create_sadd(filename, comment, &sadd_request) == VERSION_ERROR)
             {
                 printf("The file does not exist or is not a regular file\n");
@@ -138,6 +147,7 @@ int main(int argc, char *argv[])
             slist slist_request;
             memset(&slist_request, 0, sizeof(slist));
             strcpy(slist_request.filename, filename);
+            strcpy(slist_request.username, username);//Incluye el username para que el servidor gestione
 
             if(list_request(client_socket, &slist_request) == ERROR)
             {
@@ -166,6 +176,7 @@ int main(int argc, char *argv[])
             sget sget_request;
             memset(&sget_request, 0, sizeof(sget));
             strcpy(sget_request.filename, filename);
+            strcpy(sget_request.username, username);//Incluye el username para que el servidor gestione
             sget_request.version = atoi(comment);
 
             if(get_request(client_socket, &sget_request) == ERROR)
@@ -220,7 +231,8 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        usage();
+        usage(server_ip, port, username);
+
     }
 }
 
@@ -230,9 +242,11 @@ void sig_handler(int signo) {
     exit(EXIT_SUCCESS);
 }
 
-void usage() {
-    printf("Usage:\n");
-    printf("add <filename> \"<comment>\"\n");
-    printf("get <version> <filename>\n");
-    printf("list <filename>(optional)\n");
+void usage(const char *server_ip, int port, const char *username) {
+    printf("------------------Usage-----------------\n");
+    printf("You are connected to server %s:%d as user '%s'\n", server_ip, port, username);
+    printf("Commands:\n");
+    printf("  add <filename> \"<comment>\"\n");
+    printf("  get <version> <filename>\n");
+    printf("  list <filename>(optional)\n");
 }

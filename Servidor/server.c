@@ -16,6 +16,7 @@
  * @section AUTHOR
  * Julian David Meneses <juliandavidm@unicauca.edu.co>
  */
+#include <sys/stat.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -24,8 +25,14 @@
 #include <signal.h>
 #include <pthread.h>
 #include "versions.h"
+#include <limits.h>
 
 #define MAX_THREADS 100 ///< Máximo número de hilos que se pueden manejar
+/**
+ * @brief Inicializa el servidor creando el directorio de versiones si no existe
+ */
+void initialize_server();
+
 /**
  * @brief Manejador de señales
  * 
@@ -73,6 +80,7 @@ int server_socket; // Socket del servidor
 
 int main(int argc, char *argv[])
 {
+    initialize_server();
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <port>\n", argv[0]);
         exit(EXIT_FAILURE);
@@ -140,6 +148,8 @@ int main(int argc, char *argv[])
         struct sockaddr_in client_addr; // Dirección del cliente
         socklen_t clilen = sizeof(struct sockaddr_in); // Tamaño de la dirección del cliente
         int client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &clilen); // Aceptar la conexión
+        printf("(después de aceptar la conexión)\n");
+
         if (client_socket < 0) { // Verificar errores
             perror("Error accepting connection");
             continue;
@@ -274,4 +284,11 @@ ssize_t recvs(int sockfd, void *struct_ptr, size_t struct_size) {
         nread += n;
     }
     return nread == struct_size ? nread : -1;
+}
+
+void initialize_server() {
+    struct stat st = {0};
+    if (stat(".versions", &st) == -1) {
+        mkdir(".versions", 0700);
+    }
 }
