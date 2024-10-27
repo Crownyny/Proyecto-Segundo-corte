@@ -126,7 +126,8 @@ return_code add_new_version(const char *db_path, sadd * req) {
 void list(int socket, slist * request) {
 	char db_path[PATH_MAX];
 	get_user_db_path(request->username, db_path, sizeof(db_path)); // Ruta específica del usuario
-	FILE * fp; //Archivo de versiones
+	//FILE * fp; //Archivo de versiones
+	FILE *fp = fopen(db_path, "r"); //Archivo de versiones
 
 	if (!fp) {
         return_code result = VERSION_NOT_FOUND;
@@ -176,7 +177,7 @@ void list(int socket, slist * request) {
         if (request->filename[0] == '\0' || EQUALS(sadd_buffer.filename, request->filename)) {
             snprintf(buffer, sizeof(buffer), "%s %.3s...%.3s %s\n", 
                      sadd_buffer.filename, sadd_buffer.hash, 
-                     (sadd_buffer.hash + strlen(sadd_buffer.hash) - 3), 
+                     sadd_buffer.hash + strlen(sadd_buffer.hash) - 3, 
                      sadd_buffer.comment);
             msg_size = strlen(buffer);
             send(socket, &msg_size, sizeof(int), 0);
@@ -199,7 +200,7 @@ int version_exists(const char *db_path, char * filename, char * hash) {
 	ssize_t read_count;
 	sadd sadd_buffer;
 	
-	if(!(fp = fopen(VERSIONS_DB_PATH, "r"))) return -1;
+	if(!(fp = fopen(db_path, "r"))) return -1; // db_path en lugar de VERSIONS_DB_PATH
 
 	while(read_count = fread(&sadd_buffer, sizeof sadd_buffer, 1, fp), read_count > 0) {	
 		if (EQUALS(filename, sadd_buffer.filename) && EQUALS(hash, sadd_buffer.hash)) {
