@@ -139,5 +139,5 @@ void fake_local_copy(int socket) {
 	return ;
 }
 void get_user_db_path(const char *username, char *db_path, size_t size) {
-    snprintf(db_path, size, "%s/versions_%s.db", VERSIONS_DIR, username);
+    snprintf(db_path, size, "versions/%s.db", username);
 }
