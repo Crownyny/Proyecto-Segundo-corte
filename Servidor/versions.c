@@ -48,7 +48,7 @@ int version_exists(const char *db_path, char * filename, char * hash);
 *
 * @return Resultado de la operacion
 */
-return_code store_file(int socket, char * filename, char * hash);
+return_code store_file(int socket, const char *db_path, const char *filename, const char *hash);
 
 /**
  * @brief Adiciona una nueva version de un archivo.
@@ -87,7 +87,7 @@ return_code add(int socket, sadd * request) {
 	// Almacena el archivo en el repositorio.
 	// El nombre del archivo dentro del repositorio es su hash (sin extension)
 	// Retorna VERSION_ERROR si la operacion falla
-	if(store_file(socket, request->filename, request->hash) == VERSION_ERROR)
+	if(store_file(socket, db_path, request->filename, request->hash) == VERSION_ERROR)
 		return add_result(socket, VERSION_ERROR);
 
 	// Agrega un nuevo registro al archivo versions.db
@@ -104,7 +104,7 @@ return_code add(int socket, sadd * request) {
 		//}
 
 		//remove(file_path);
-		remove(db_path);
+		//remove(db_path);
 		return add_result(socket, VERSION_ERROR);
 	}
     
@@ -239,10 +239,16 @@ return_code get(int socket, sget * request) {
     return get_result(socket, VERSION_NOT_FOUND, NULL); //Si no se encuentra la version solicitada retorna VERSION_NOT_FOUND
 }
 
-return_code store_file(int socket, char * filename, char * hash){
-	char dst_filename[PATH_MAX];
-	snprintf(dst_filename, PATH_MAX, "%s/%s", VERSIONS_DIR, hash);
-	return local_copy(socket, dst_filename);
+return_code store_file(int socket, const char *db_path, const char *filename, const char *hash){
+	// Guardaren .db en lugar no crear un archivo nuevo
+	FILE *db_file = fopen(db_path, "ab");
+    if (!db_file) return VERSION_ERROR;
+
+	fwrite(hash, sizeof(char), strlen(hash), db_file);
+    fwrite(filename, sizeof(char), strlen(filename), db_file);
+
+	fclose(db_file);
+    return VERSION_CREATED;
 }
 
 return_code add_result(int socket, return_code result) {
