@@ -113,7 +113,7 @@ return_code add(int socket, sadd * request) {
 }
 
 return_code add_new_version(const char *db_path, sadd * req) {
-	FILE * fp = fopen(VERSIONS_DB_PATH, "ab");
+	FILE * fp = fopen(db_path, "ab"); //Usa la ruta especifica
 	
 	if(!fp) return VERSION_ERROR;
 	// Adiciona un nuevo registro (estructura) al archivo versions.db
