@@ -96,9 +96,9 @@ int main(int argc, char *argv[])
     #endif
 
 	// Crea el archivo .versions/versions.db si no existe
-	if (stat(VERSIONS_DB_PATH, &s) != 0) {
-		creat(VERSIONS_DB_PATH, 0755);
-	}
+	//if (stat(VERSIONS_DB_PATH, &s) != 0) {
+	//	creat(VERSIONS_DB_PATH, 0755);
+	//}
 
     struct sockaddr_in server_addr;
     server_handler = malloc(sizeof *server_handler);
@@ -192,6 +192,7 @@ void sig_handler(int signo) {
 
 void * client_handler(void * arg)
 {
+    printf("estoy en client handler");
     int client_socket = *(int *)arg; // Socket del cliente
     free(arg); // Liberar memoria del argumento
     operation_type op_type ; // Codigo de operacion
@@ -211,6 +212,7 @@ void * client_handler(void * arg)
     char db_path[PATH_MAX];
     get_user_db_path(sadd_request.username, db_path, sizeof(db_path));
     
+    printf("antes de");
     // Verificar si el archivo de base de datos del usuario existe, si no, crearlo
     struct stat st;
     if (stat(db_path, &st) != 0) { // Si el archivo no existe
@@ -224,6 +226,7 @@ void * client_handler(void * arg)
             return NULL;
         }
     }
+    printf("despues de");
 
     while(1) {
         nread = recv(client_socket,&op_type, sizeof(operation_type), 0); // Recibir el codigo de operacion
