@@ -198,6 +198,33 @@ void * client_handler(void * arg)
     return_code result; // Resultado de la operacion
     ssize_t nread; // Cantidad de bytes leidos
     sadd sadd_request; // Estructura de solicitud de adición
+
+    // Leer el nombre de usuario al conectarse
+    nread = recv(client_socket, sadd_request.username, sizeof(sadd_request.username), 0);
+    if (nread <= 0) {
+        printf("Error reading username or client disconnected.\n");
+        close(client_socket);
+        return NULL;
+    }
+
+    // Generar la ruta de la base de datos del usuario
+    char db_path[PATH_MAX];
+    get_user_db_path(sadd_request.username, db_path, sizeof(db_path));
+    
+    // Verificar si el archivo de base de datos del usuario existe, si no, crearlo
+    struct stat st;
+    if (stat(db_path, &st) != 0) { // Si el archivo no existe
+        FILE *fp = fopen(db_path, "wb"); // Crear el archivo en modo binario
+        if (fp) {
+            printf("Database file %s created for user %s.\n", db_path, sadd_request.username);
+            fclose(fp);
+        } else {
+            perror("Error creating user database file");
+            close(client_socket);
+            return NULL;
+        }
+    }
+
     while(1) {
         nread = recv(client_socket,&op_type, sizeof(operation_type), 0); // Recibir el codigo de operacion
         if (nread < 0) {
