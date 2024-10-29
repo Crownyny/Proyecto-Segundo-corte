@@ -57,6 +57,13 @@ int main(int argc, char *argv[])
     // Obtenemos la id y el puerto del servidor
     char *server_ip = argv[1];
     int port = atoi(argv[2]);
+
+    if(argv[3] == NULL)
+    {
+        fprintf(stderr, "Username not provided\n");
+        fprintf(stderr,"Usage: %s <server id> <port> <username>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
     char *username = argv[3];
 
     // Verificamos que el nombre de usuario no sea muy largo
