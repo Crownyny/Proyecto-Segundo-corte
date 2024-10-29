@@ -45,6 +45,8 @@ typedef enum {
  * @brief Estructura de operacion de adicion
  * Para realizar una  petición de adición de un archivo al repositorio
  * se envía el nombre del archivo, el hash de su contenido y un comentario
+ * Ademas se envia el nombre del usuario para el cual se realiza la operacion,
+ * el archivo a adicionar solo podra ser recuperado y listado por ese usuario
  * 
  * La respuesta se enviara mediante el socket
  * en el caso de que la operación sea exitosa, se envía el código de retorno VERSION_ADDED
@@ -55,12 +57,15 @@ typedef struct {
 	char filename[PATH_MAX]; /**< Nombre del archivo original. */
 	char hash[HASH_SIZE];           /**< Hash del contenido del archivo. */
 	char comment[COMMENT_SIZE];	   /**< Comentario del usuario. */
+	char username[COMMENT_SIZE];	   /**< Nombre del usuario. */
 } sadd;
 
 /**
  * @brief Estructura de operacion de obtención
  * Para realizar una petición de obtención de una versión de un archivo
  * se envía el nombre del archivo y la versión que se desea obtener
+ * ademas se envia el nombre del usuario para el cual se realiza la operacion
+ * el archivo a obtener solo podra ser recuperado si pertenece al usuario
  * 
  * La respuesta se enviara mediante el socket
  * en el caso de que la operación sea exitosa, se envía el código de retorno VERSION_CREATED,
@@ -71,6 +76,7 @@ typedef struct {
 typedef struct {
     char filename[HASH_SIZE]; /**< Nombre del archivo original. */
     size_t version; /**< Version del archivo a obtener */
+	char username[COMMENT_SIZE];	   /**< Nombre del usuario. */
 } sget;
 
 /**
@@ -78,6 +84,8 @@ typedef struct {
  * Para realizar una petición de listado de versiones de un archivo
  * se envía el nombre del archivo del cual se desean listar sus versiones 
  * o se envia una cadena vacia si se desea listar todos los archivos del repositorio
+ * ademas se envia el nombre del usuario para el cual se realiza la operacion
+ * solo se listaran los archivos que pertenezcan al usuario
  * 
  * La respuesta se enviara mediante el socket
  * en el caso de que la operación sea exitosa, se envía el código de retorno VERSION_CREATED
@@ -88,6 +96,7 @@ typedef struct {
  */
 typedef struct {
     char filename[HASH_SIZE];  /**< Nombre del archivo original. */
+	char username[COMMENT_SIZE];	   /**< Nombre del usuario. */
 } slist;
 
 /**

@@ -41,6 +41,7 @@ typedef enum {
 }operation_type;
 
  
+ 
 /**
  * @brief Estructura de operacion de adicion
  * Para realizar una  petición de adición de un archivo al repositorio
@@ -55,6 +56,7 @@ typedef struct {
 	char filename[PATH_MAX]; /**< Nombre del archivo original. */
 	char hash[HASH_SIZE];           /**< Hash del contenido del archivo. */
 	char comment[COMMENT_SIZE];	   /**< Comentario del usuario. */
+	char username[COMMENT_SIZE];	   /**< Nombre del usuario. */
 } sadd;
 
 /**
@@ -63,7 +65,7 @@ typedef struct {
  * se envía el nombre del archivo y la versión que se desea obtener
  * 
  * La respuesta se enviara mediante el socket
- * en el caso de que la operación sea exitosa, se envía el código de retorno VERSION_CREATED
+ * en el caso de que la operación sea exitosa, se envía el código de retorno VERSION_CREATED,
  * luego el tamaño del archivo en bytes, siendo esta la cantidad que se debe leer del socket,
  * en las siguientes lineas se envía el contenido del archivo
  * en caso de que la versión no exista, se envía el código de retorno VERSION_NOT_FOUND
@@ -71,25 +73,26 @@ typedef struct {
 typedef struct {
     char filename[HASH_SIZE]; /**< Nombre del archivo original. */
     size_t version; /**< Version del archivo a obtener */
+	char username[COMMENT_SIZE];	   /**< Nombre del usuario. */
 } sget;
 
 /**
  * @brief Estructura de operacion de listado
  * Para realizar una petición de listado de versiones de un archivo
  * se envía el nombre del archivo del cual se desean listar sus versiones 
- * o NULL si se desea listar todos los archivos del repositorio
+ * o se envia una cadena vacia si se desea listar todos los archivos del repositorio
  * 
  * La respuesta se enviara mediante el socket
  * en el caso de que la operación sea exitosa, se envía el código de retorno VERSION_CREATED
- * y luego una lista de versiones en las líneas siguientes
+ * y luego una lista de versionesprimero se envia el tama;o de la linea de listado y luego la linea
  * con el formato "filename hash(Primeros y ultimos 3 caracteres) comment"
  * cuando se pasa un filename diferente de NULL, adicionalmente se envía el número de versión
- * en caso de que no se encuentren versiones, se envía el código de retorno VERSION_NOT_FOUND
+ * en caso de que no se encuentren versiones, solo se envía el código de retorno VERSION_NOT_FOUND
  */
 typedef struct {
     char filename[HASH_SIZE];  /**< Nombre del archivo original. */
+	char username[COMMENT_SIZE];	   /**< Nombre del usuario. */
 } slist;
-
 
 /**
  * @brief Copia de un socket hacia un archivo local

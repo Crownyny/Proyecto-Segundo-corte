@@ -22,7 +22,7 @@
  * 
  * @return Codigo de la operacion (VERSION_CREATED si la operacion es exitosa, VERSION_ERROR si ocurre un error)
  */
-return_code create_sadd(char * filename, char * comment, sadd * result);
+return_code create_sadd(char * filename, char * comment, sadd * result, char * username);
 
 /**
  * @brief Crea un archivo con el resultado de la operacion get

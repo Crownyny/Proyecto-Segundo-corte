@@ -133,7 +133,7 @@ void list(int socket, slist * request) {
 	//Muestra los registros cuyo nombre coincide con filename.
 	//Si filename es NULL, muestra todos los registros.
     while(read_count = fread(&sadd_buffer, sizeof(sadd), 1, fp), read_count > 0) {
-		if(request->filename[0] == '\0') //Si filename es NULL, muestra todos los registros
+		if(EQUALS(sadd_buffer.username,request->username) && request->filename[0] == '\0') //Si filename es NULL, muestra todos los registros
         {
 			if(version_count == 0) send(socket, &result, sizeof(return_code), 0); //Envia VERSION_CREATED si se encuentra el archivo
 
@@ -146,7 +146,7 @@ void list(int socket, slist * request) {
             continue;
         }
 
-		if(EQUALS(sadd_buffer.filename, request->filename)) //Si filename no es NULL, muestra los registros cuyo nombre coincide con filename
+		if(EQUALS(sadd_buffer.username,request->username) && EQUALS(sadd_buffer.filename, request->filename)) //Si filename no es NULL, muestra los registros cuyo nombre coincide con filename
 		{
 			if(version_count == 0) send(socket, &result, sizeof(return_code), 0); //Envia VERSION_CREATED si se encuentra el archivo
 
@@ -198,7 +198,7 @@ return_code get(int socket, sget * request) {
 	while (nread = fread(&sadd_buffer, sizeof sadd_buffer, 1, fp), nread > 0) //Lee el archivo de versiones
 	{
 		printf("Filename: %s %s\n",request->filename, sadd_buffer.filename);
-		if(EQUALS(request->filename, sadd_buffer.filename) && count++ == request->version)
+		if(EQUALS(sadd_buffer.username,request->username) && EQUALS(request->filename, sadd_buffer.filename) && count++ == request->version)
         {
 			fclose(fp);
 			return get_result(socket, VERSION_CREATED, sadd_buffer.hash); //Si se encuentra la version solicitada, retorna VERSION_CREATED

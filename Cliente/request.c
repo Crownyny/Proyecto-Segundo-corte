@@ -19,7 +19,7 @@
 char *get_file_hash(char * filename, char * hash);
 
 
-return_code create_sadd(char * filename, char * comment, sadd * result) {
+return_code create_sadd(char * filename, char * comment, sadd * result, char * username) {
 
     struct stat s;
     char hash[HASH_SIZE];
@@ -39,6 +39,7 @@ return_code create_sadd(char * filename, char * comment, sadd * result) {
 	strcpy(result->filename, filename);
 	strcpy(result->hash, hash);
 	strcpy(result->comment, comment);
+    strcpy(result->username, username);
 
     return VERSION_CREATED;
 }
